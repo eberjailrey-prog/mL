@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mercado Livre — Dashboard</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #f5f5f5;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1rem;
+    }
+
+    .card {
+      background: white;
+      border-radius: 16px;
+      padding: 2.5rem;
+      width: 100%;
+      max-width: 520px;
+      box-shadow: 0 2px 16px rgba(0,0,0,0.08);
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 2rem;
+    }
+
+    .logo-icon {
+      width: 44px;
+      height: 44px;
+      background: #FFE600;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+    }
+
+    .logo h1 {
+      font-size: 18px;
+      font-weight: 600;
+      color: #1a1a1a;
+    }
+    .logo p {
+      font-size: 13px;
+      color: #888;
+    }
+
+    .btn-login {
+      display: block;
+      width: 100%;
+      background: #FFE600;
+      color: #1a1a1a;
+      border: none;
+      border-radius: 10px;
+      padding: 14px 20px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      text-align: center;
+      text-decoration: none;
+      transition: background 0.15s;
+    }
+    .btn-login:hover { background: #f0d800; }
+
+    .btn-logout {
+      background: none;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 8px 16px;
+      font-size: 13px;
+      color: #666;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .btn-logout:hover { background: #f5f5f5; }
+
+    .error-box {
+      background: #fff0f0;
+      border: 1px solid #fcc;
+      border-radius: 8px;
+      padding: 12px 16px;
+      color: #c00;
+      font-size: 13px;
+      margin-bottom: 1.5rem;
+    }
+
+    .profile {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 1.5rem;
+      padding-bottom: 1.5rem;
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    .avatar {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      background: #FFE600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      font-weight: 700;
+      color: #1a1a1a;
+      overflow: hidden;
+    }
+    .avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+    .profile-info h2 { font-size: 16px; font-weight: 600; color: #1a1a1a; }
+    .profile-info p { font-size: 13px; color: #888; margin-top: 2px; }
+
+    .stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 1.5rem;
+    }
+
+    .stat {
+      background: #f9f9f9;
+      border-radius: 10px;
+      padding: 14px;
+    }
+    .stat .label { font-size: 12px; color: #999; margin-bottom: 4px; }
+    .stat .value { font-size: 18px; font-weight: 600; color: #1a1a1a; }
+
+    .section-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 10px;
+    }
+
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 9px 0;
+      border-bottom: 1px solid #f5f5f5;
+      font-size: 14px;
+    }
+    .info-row:last-child { border-bottom: none; }
+    .info-row .key { color: #888; }
+    .info-row .val { color: #1a1a1a; font-weight: 500; }
+
+    .badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .badge.green { background: #e6f9f0; color: #0a7a4b; }
+    .badge.yellow { background: #fffbe6; color: #a07800; }
+
+    .header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .loading {
+      text-align: center;
+      color: #999;
+      padding: 2rem 0;
+      font-size: 14px;
+    }
+
+    .spinner {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 2px solid #eee;
+      border-top-color: #FFE600;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      margin-right: 8px;
+      vertical-align: middle;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    #login-screen, #dashboard-screen { display: none; }
+
+    .token-info {
+      margin-top: 1.5rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid #f0f0f0;
+    }
+    .token-box {
+      background: #f9f9f9;
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 12px;
+      font-family: monospace;
+      color: #555;
+      word-break: break-all;
+      margin-top: 6px;
+    }
+
+    .subtitle {
+      font-size: 14px;
+      color: #888;
+      margin-bottom: 2rem;
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- LOGIN -->
+  <div class="card" id="login-screen">
+    <div class="logo">
+      <div class="logo-icon">🛒</div>
+      <div>
+        <h1>ML Dashboard</h1>
+        <p>Conecte sua conta</p>
+      </div>
+    </div>
+    <div id="error-msg" class="error-box" style="display:none;"></div>
+    <p class="subtitle">Faça login com sua conta do Mercado Livre para ver seus dados, vendas e produtos.</p>
+    <a class="btn-login" href="/api/login">🔑 Entrar com Mercado Livre</a>
+  </div>
+
+  <!-- DASHBOARD -->
+  <div class="card" id="dashboard-screen">
+    <div class="header-row">
+      <div class="logo">
+        <div class="logo-icon">🛒</div>
+        <div>
+          <h1>ML Dashboard</h1>
+          <p>Sua conta conectada</p>
+        </div>
+      </div>
+      <button class="btn-logout" onclick="logout()">Sair</button>
+    </div>
+
+    <div id="loading" class="loading">
+      <span class="spinner"></span> Carregando seus dados...
+    </div>
+
+    <div id="user-data" style="display:none;">
+      <div class="profile">
+        <div class="avatar" id="avatar-container">?</div>
+        <div class="profile-info">
+          <h2 id="user-name">—</h2>
+          <p id="user-email">—</p>
+        </div>
+      </div>
+
+      <div class="stats">
+        <div class="stat">
+          <div class="label">Reputação</div>
+          <div class="value" id="reputation">—</div>
+        </div>
+        <div class="stat">
+          <div class="label">Vendas concluídas</div>
+          <div class="value" id="total-sales">—</div>
+        </div>
+      </div>
+
+      <p class="section-title">Informações da conta</p>
+      <div class="info-row"><span class="key">ID Usuário</span><span class="val" id="user-id">—</span></div>
+      <div class="info-row"><span class="key">País</span><span class="val" id="user-country">—</span></div>
+      <div class="info-row"><span class="key">Tipo de conta</span><span class="val" id="user-type">—</span></div>
+      <div class="info-row"><span class="key">Status</span><span class="val" id="user-status">—</span></div>
+      <div class="info-row"><span class="key">Cadastro</span><span class="val" id="user-since">—</span></div>
+
+      <div class="token-info">
+        <p class="section-title">Access Token (para usar na API)</p>
+        <div class="token-box" id="token-display">—</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const accessToken = params.get('access_token') || localStorage.getItem('ml_access_token');
+    const refreshToken = params.get('refresh_token') || localStorage.getItem('ml_refresh_token');
+    const error = params.get('error');
+
+    if (params.get('access_token')) {
+      localStorage.setItem('ml_access_token', params.get('access_token'));
+      localStorage.setItem('ml_refresh_token', params.get('refresh_token') || '');
+      localStorage.setItem('ml_expires_at', Date.now() + (parseInt(params.get('expires_in') || '21600') * 1000));
+      window.history.replaceState({}, '', '/');
+    }
+
+    if (accessToken) {
+      document.getElementById('dashboard-screen').style.display = 'block';
+      loadUserData(accessToken);
+    } else {
+      document.getElementById('login-screen').style.display = 'block';
+      if (error) {
+        const errBox = document.getElementById('error-msg');
+        errBox.style.display = 'block';
+        errBox.textContent = 'Erro ao conectar: ' + decodeURIComponent(error);
+      }
+    }
+
+    async function loadUserData(token) {
+      try {
+        const res = await fetch('https://api.mercadolibre.com/users/me', {
+          headers: { Authorization: 'Bearer ' + token }
+        });
+
+        if (res.status === 401) {
+          const refreshed = await tryRefresh();
+          if (refreshed) { loadUserData(refreshed); return; }
+          logout(); return;
+        }
+
+        const data = await res.json();
+        renderUser(data, token);
+      } catch (e) {
+        document.getElementById('loading').textContent = 'Erro ao carregar dados. Tente novamente.';
+      }
+    }
+
+    function renderUser(data, token) {
+      document.getElementById('loading').style.display = 'none';
+      document.getElementById('user-data').style.display = 'block';
+
+      document.getElementById('user-name').textContent = data.nickname || data.first_name + ' ' + (data.last_name || '');
+      document.getElementById('user-email').textContent = data.email || 'E-mail não disponível';
+      document.getElementById('user-id').textContent = data.id;
+      document.getElementById('user-country').textContent = data.country_id || '—';
+      document.getElementById('user-type').textContent = data.account_type || data.user_type || '—';
+      document.getElementById('user-status').innerHTML = `<span class="badge ${data.status === 'active' ? 'green' : 'yellow'}">${data.status || '—'}</span>`;
+
+      if (data.registration_date) {
+        const date = new Date(data.registration_date);
+        document.getElementById('user-since').textContent = date.toLocaleDateString('pt-BR');
+      }
+
+      const rep = data.seller_reputation;
+      if (rep) {
+        document.getElementById('reputation').textContent = rep.level_id || '—';
+        document.getElementById('total-sales').textContent = rep.transactions?.completed || '0';
+      } else {
+        document.getElementById('reputation').textContent = '—';
+        document.getElementById('total-sales').textContent = '—';
+      }
+
+      if (data.thumbnail) {
+        document.getElementById('avatar-container').innerHTML = `<img src="${data.thumbnail}" alt="avatar">`;
+      } else {
+        const initials = (data.nickname || data.first_name || 'U').slice(0, 1).toUpperCase();
+        document.getElementById('avatar-container').textContent = initials;
+      }
+
+      const display = token.slice(0, 30) + '...' + token.slice(-8);
+      document.getElementById('token-display').textContent = display;
+    }
+
+    async function tryRefresh() {
+      const rt = localStorage.getItem('ml_refresh_token');
+      if (!rt) return null;
+      try {
+        const res = await fetch('/api/refresh', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ refresh_token: rt })
+        });
+        if (!res.ok) return null;
+        const data = await res.json();
+        localStorage.setItem('ml_access_token', data.access_token);
+        localStorage.setItem('ml_refresh_token', data.refresh_token || rt);
+        localStorage.setItem('ml_expires_at', Date.now() + (data.expires_in * 1000));
+        return data.access_token;
+      } catch { return null; }
+    }
+
+    function logout() {
+      localStorage.removeItem('ml_access_token');
+      localStorage.removeItem('ml_refresh_token');
+      localStorage.removeItem('ml_expires_at');
+      window.location.href = '/';
+    }
+
+    setInterval(async () => {
+      const expiresAt = parseInt(localStorage.getItem('ml_expires_at') || '0');
+      if (expiresAt && (expiresAt - Date.now()) < 5 * 60 * 1000) {
+        await tryRefresh();
+      }
+    }, 60 * 1000);
+  </script>
+</body>
+</html>
